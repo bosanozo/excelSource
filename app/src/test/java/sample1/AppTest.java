@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AppTest {
     // @Test
     @ParameterizedTest
-    @ExcelSource(file = "C:/Users/bosan/source/repos/excelSource/test1.xlsx", sheet = "Sheet1")
+    @ExcelSource(file = "../test1.xlsx", sheet = "Sheet1")
     void test1(TestData s) {
         System.out.println("input:" + s.getInput() + " expected:" + s.getExpected());
         App classUnderTest = new App();

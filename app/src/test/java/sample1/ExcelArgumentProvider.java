@@ -2,13 +2,16 @@ package sample1;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.support.AnnotationConsumer;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -31,10 +34,26 @@ class ExcelArgumentProvider implements ArgumentsProvider, AnnotationConsumer<Exc
         Sheet sheet = workbook.getSheet(this.sheetName);
 
         List<TestData> list = new ArrayList<TestData>();
-        for (int i = 0; i <= sheet.getLastRowNum(); i++) {
-            Row row = sheet.getRow(i);
-            TestData data = new TestData(row.getCell(0).getStringCellValue(), row.getCell(1).getStringCellValue());
-            list.add(data);
+        int lastRowNum = sheet.getLastRowNum();
+
+        if (lastRowNum > 1) {
+            Row headerRow = sheet.getRow(0);
+            int lastCellNum = headerRow.getLastCellNum();
+            List<String> headerNames = new ArrayList<String>();
+            for (int i = 0; i < lastCellNum; i++) {
+                headerNames.add(headerRow.getCell(i).getStringCellValue());
+            }
+            
+            for (int i = 1; i < lastRowNum; i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) break;
+                Map<String, Cell> map = new HashMap<String, Cell>();
+                for (int j = 0; j < lastCellNum; j++) {
+                    map.put(headerNames.get(j), row.getCell(j));
+                }
+                TestData data = new TestData(map);
+                list.add(data);
+            }
         }
         return list.stream().map(Arguments::of);
     }    
