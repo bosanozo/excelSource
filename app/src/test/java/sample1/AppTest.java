@@ -17,12 +17,11 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 class AppTest {
     private static final String baseUrl = "https://u57nfat2zh.execute-api.ap-northeast-1.amazonaws.com/prod/v1/";
-    private static final JsonFactory jsonFactory = null;// new JacksonFactory();
     private HttpRequestFactory reqFactory = new NetHttpTransport().createRequestFactory();
 
     @ParameterizedTest
@@ -33,13 +32,23 @@ class AppTest {
             HttpRequest request = reqFactory.buildRequest(testData.getMethod(), url, null);
             request.setThrowExceptionOnExecuteError(false);
             if (testData.getInput() != null) {
-                System.out.println("input: " + testData.getInput());
-                request.setContent(ByteArrayContent.fromString("application/json", testData.getInput()));
+                JsonElement input = testData.getInput();
+                System.out.println("input: " + input);
+                request.setContent(ByteArrayContent.fromString("application/json", input.toString()));
             }
             HttpResponse response = request.execute();
             System.out.println("status: " + response.getStatusCode());            
-            System.out.println("response: " + response.getContent());
             assertEquals(testData.getStatus(), response.getStatusCode());
+
+            if ("application/json".equals(response.getContentType())) {
+                JsonElement actual = JsonParser.parseString(response.parseAsString());
+                System.out.println("actual: " + actual);
+                if (testData.getExpected() != null) {
+                    JsonElement expected = testData.getExpected();
+                    System.out.println("expected: " + expected);
+                    System.out.println(expected.equals(actual));
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

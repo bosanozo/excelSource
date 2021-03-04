@@ -1,6 +1,10 @@
 package sample1;
 
 import java.util.Map;
+import java.util.Optional;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 import org.apache.poi.ss.usermodel.Cell;
 
@@ -12,42 +16,43 @@ public class TestData {
     private String description;
     private String method;
     private String path;
-    private String input;
+    private JsonElement input;
     private int status;
-    private int count;
-    private String expected;
+    private Optional<Integer> count;
+    private JsonElement expected;
     private String resultName;
     private boolean skip;
 
     public TestData(Map<String, Cell> map) {
-        this.no = getIntValue(map, "no");
-        this.description = getStringValue(map, "description");
-        this.method = getStringValue(map, "method");
-        this.path = getStringValue(map, "path");
-        this.input = getStringValue(map, "input");
-        this.status = getIntValue(map, "status");
-        this.count = getIntValue(map, "count");
-        this.expected = getStringValue(map, "expected");
-        this.resultName = getStringValue(map, "resultname");
-        this.skip = getBooleanValue(map, "skip");
+        this.no = getIntValue(map.get("no"));
+        this.description = getStringValue(map.get("description"));
+        this.method = getStringValue(map.get("method"));
+        this.path = getStringValue(map.get("path"));
+        this.input = getJsonValue(map.get("input"));
+        this.status = getIntValue(map.get("status"));
+        Optional.ofNullable(map.get("count")).ifPresent(cell -> this.count = Optional.ofNullable((int)cell.getNumericCellValue()));
+        this.expected = getJsonValue(map.get("expected"));
+        this.resultName = getStringValue(map.get("resultname"));
+        this.skip = getBooleanValue(map.get("skip"));
     }
 
     public String toString() {
         return this.method + " " + this.path;
     }
 
-    private String getStringValue(Map<String, Cell> map, String key) {
-        Cell cell = map.get(key);
+    private String getStringValue(Cell cell) {
         return cell != null ? cell.getStringCellValue() : null;
     }
 
-    private int getIntValue(Map<String, Cell> map, String key) {
-        Cell cell = map.get(key);
+    private JsonElement getJsonValue(Cell cell) {
+        return cell != null ? JsonParser.parseString(cell.getStringCellValue()) : null;
+    }
+
+    private int getIntValue(Cell cell) {
         return cell != null ? (int)cell.getNumericCellValue() : 0;
     }
 
-    private boolean getBooleanValue(Map<String, Cell> map, String key) {
-        Cell cell = map.get(key);
+    private boolean getBooleanValue(Cell cell) {
         return cell != null ? cell.getBooleanCellValue() : false;
     }
 }
