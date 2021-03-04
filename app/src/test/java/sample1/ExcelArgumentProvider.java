@@ -41,7 +41,7 @@ class ExcelArgumentProvider implements ArgumentsProvider, AnnotationConsumer<Exc
             int lastCellNum = headerRow.getLastCellNum();
             List<String> headerNames = new ArrayList<String>();
             for (int i = 0; i < lastCellNum; i++) {
-                headerNames.add(headerRow.getCell(i).getStringCellValue());
+                headerNames.add(headerRow.getCell(i).getStringCellValue().toLowerCase());
             }
             
             for (int i = 1; i < lastRowNum; i++) {

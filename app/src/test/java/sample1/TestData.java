@@ -9,6 +9,7 @@ import lombok.Data;
 @Data
 public class TestData {
     private int no;
+    private String description;
     private String method;
     private String path;
     private String input;
@@ -19,15 +20,20 @@ public class TestData {
     private boolean skip;
 
     public TestData(Map<String, Cell> map) {
-        this.no = getIntValue(map, "No");
-        this.method = getStringValue(map, "Method");
-        this.path = getStringValue(map, "Path");
-        this.input = getStringValue(map, "Input");
-        this.status = getIntValue(map, "Status");
-        this.count = getIntValue(map, "Count");
-        this.expected = getStringValue(map, "Expected");
-        this.resultName = getStringValue(map, "ResultName");
-        this.skip = getBooleanValue(map, "Skip");
+        this.no = getIntValue(map, "no");
+        this.description = getStringValue(map, "description");
+        this.method = getStringValue(map, "method");
+        this.path = getStringValue(map, "path");
+        this.input = getStringValue(map, "input");
+        this.status = getIntValue(map, "status");
+        this.count = getIntValue(map, "count");
+        this.expected = getStringValue(map, "expected");
+        this.resultName = getStringValue(map, "resultname");
+        this.skip = getBooleanValue(map, "skip");
+    }
+
+    public String toString() {
+        return this.method + " " + this.path;
     }
 
     private String getStringValue(Map<String, Cell> map, String key) {
