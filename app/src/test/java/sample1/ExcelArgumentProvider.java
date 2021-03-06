@@ -17,6 +17,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
+/**
+ * ArgumentsProvider for @ExcelSource
+ */
 class ExcelArgumentProvider implements ArgumentsProvider, AnnotationConsumer<ExcelSource> {
     private String fileName;
     private String sheetName;
@@ -30,30 +33,38 @@ class ExcelArgumentProvider implements ArgumentsProvider, AnnotationConsumer<Exc
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
         // return Stream.of("foo", "bar").map(Arguments::of);
-        Workbook workbook = WorkbookFactory.create(new File(this.fileName));
-        Sheet sheet = workbook.getSheet(this.sheetName);
-
         List<TestData> list = new ArrayList<TestData>();
-        int lastRowNum = sheet.getLastRowNum();
+        Workbook workbook = null;
+        try {
+            workbook = WorkbookFactory.create(new File(this.fileName));
+            Sheet sheet = workbook.getSheet(this.sheetName);
+            int lastRowNum = sheet.getLastRowNum();
 
-        if (lastRowNum > 1) {
-            Row headerRow = sheet.getRow(0);
-            int lastCellNum = headerRow.getLastCellNum();
-            List<String> headerNames = new ArrayList<String>();
-            for (int i = 0; i < lastCellNum; i++) {
-                headerNames.add(headerRow.getCell(i).getStringCellValue().toLowerCase());
-            }
-            
-            for (int i = 1; i < lastRowNum; i++) {
-                Row row = sheet.getRow(i);
-                if (row == null) break;
-                Map<String, Cell> map = new HashMap<String, Cell>();
-                for (int j = 0; j < lastCellNum; j++) {
-                    map.put(headerNames.get(j), row.getCell(j));
+            if (lastRowNum > 1) {
+                // read header
+                Row headerRow = sheet.getRow(0);
+                int lastCellNum = headerRow.getLastCellNum();
+                List<String> headerNames = new ArrayList<String>();
+                for (int i = 0; i < lastCellNum; i++) {
+                    headerNames.add(headerRow.getCell(i).getStringCellValue().toLowerCase());
                 }
-                TestData data = new TestData(map);
-                list.add(data);
+                
+                // read test data
+                for (int i = 1; i < lastRowNum; i++) {
+                    Row row = sheet.getRow(i);
+                    if (row == null) break;
+                    Map<String, Cell> map = new HashMap<String, Cell>();
+                    for (int j = 0; j < lastCellNum; j++) {
+                        Cell cell = row.getCell(j);
+                        if (cell != null) {
+                            map.put(headerNames.get(j), cell);
+                        }
+                    }
+                    list.add(new TestData(map));
+                }
             }
+        } finally {
+            if (workbook != null) workbook.close();
         }
         return list.stream().map(Arguments::of);
     }    

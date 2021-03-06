@@ -6,6 +6,7 @@ package sample1;
 //import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.platform.commons.util.StringUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,24 +19,34 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 class AppTest {
     private static final String baseUrl = "https://u57nfat2zh.execute-api.ap-northeast-1.amazonaws.com/prod/v1/";
     private HttpRequestFactory reqFactory = new NetHttpTransport().createRequestFactory();
+    private JsonObject result = new JsonObject();
 
     @ParameterizedTest
-    @ExcelSource(file = "../test1.xlsx", sheet = "Sheet1")
+    @ExcelSource(file = "../testdata/test1.xlsx", sheet = "Sheet1")
     void test1(TestData testData) {
+        if (testData.isSkip()) {
+            System.out.println("skip!");
+            return;
+        }
+
         GenericUrl url = new GenericUrl(baseUrl + testData.getPath());
         try {
-            HttpRequest request = reqFactory.buildRequest(testData.getMethod(), url, null);
+            HttpRequest request = reqFactory.buildRequest(testData.getMethod().toUpperCase(), url, null);
             request.setThrowExceptionOnExecuteError(false);
-            if (testData.getInput() != null) {
-                JsonElement input = testData.getInput();
+            String inputJson = testData.getInput();
+            if (StringUtils.isNotBlank(inputJson)) {
+                JsonElement input = JsonParser.parseString(inputJson);
                 System.out.println("input: " + input);
                 request.setContent(ByteArrayContent.fromString("application/json", input.toString()));
             }
+
+            // call api
             HttpResponse response = request.execute();
             System.out.println("status: " + response.getStatusCode());            
             assertEquals(testData.getStatus(), response.getStatusCode());
@@ -43,8 +54,13 @@ class AppTest {
             if ("application/json".equals(response.getContentType())) {
                 JsonElement actual = JsonParser.parseString(response.parseAsString());
                 System.out.println("actual: " + actual);
-                if (testData.getExpected() != null) {
-                    JsonElement expected = testData.getExpected();
+                if (StringUtils.isNotBlank(testData.getResultName())) {
+                    result.add(testData.getResultName(), actual);
+                }
+
+                String expectedJson = testData.getExpected();
+                if (StringUtils.isNotBlank(expectedJson)) {
+                    JsonElement expected = JsonParser.parseString(expectedJson);
                     System.out.println("expected: " + expected);
                     System.out.println(expected.equals(actual));
                 }
