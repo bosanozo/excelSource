@@ -1,6 +1,7 @@
 package sample1;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,11 +33,15 @@ class ExcelArgumentProvider implements ArgumentsProvider, AnnotationConsumer<Exc
 
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
-        // return Stream.of("foo", "bar").map(Arguments::of);
+        File excel = new File(this.fileName);
+        if (!excel.exists()) {
+            throw new FileNotFoundException("File not found. fileName: " + this.fileName);
+        }
+
         List<TestData> list = new ArrayList<TestData>();
         Workbook workbook = null;
         try {
-            workbook = WorkbookFactory.create(new File(this.fileName));
+            workbook = WorkbookFactory.create(excel);
             Sheet sheet = workbook.getSheet(this.sheetName);
             int lastRowNum = sheet.getLastRowNum();
 

@@ -10,7 +10,12 @@ import org.junit.platform.commons.util.StringUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.GenericUrl;
@@ -21,11 +26,18 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 
 class AppTest {
     private static final String baseUrl = "https://u57nfat2zh.execute-api.ap-northeast-1.amazonaws.com/prod/v1/";
     private HttpRequestFactory reqFactory = new NetHttpTransport().createRequestFactory();
     private JsonObject result = new JsonObject();
+
+    private Pattern pattern = Pattern.compile("\\$[{]([^}]+)[}]");
+    private Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider()).build();               
 
     @ParameterizedTest
     @ExcelSource(file = "../testdata/test1.xlsx", sheet = "Sheet1")
@@ -39,9 +51,8 @@ class AppTest {
         try {
             HttpRequest request = reqFactory.buildRequest(testData.getMethod().toUpperCase(), url, null);
             request.setThrowExceptionOnExecuteError(false);
-            String inputJson = testData.getInput();
-            if (StringUtils.isNotBlank(inputJson)) {
-                JsonElement input = JsonParser.parseString(inputJson);
+            JsonElement input = getJsonElement(testData.getInput());
+            if (input != null) {
                 System.out.println("input: " + input);
                 request.setContent(ByteArrayContent.fromString("application/json", input.toString()));
             }
@@ -58,24 +69,58 @@ class AppTest {
                     result.add(testData.getResultName(), actual);
                 }
 
-                String expectedJson = testData.getExpected();
-                if (StringUtils.isNotBlank(expectedJson)) {
-                    JsonElement expected = JsonParser.parseString(expectedJson);
+                JsonElement expected = getJsonElement(testData.getExpected());
+                if (expected != null) {
                     System.out.println("expected: " + expected);
                     System.out.println(expected.equals(actual));
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            e.getMessage();
         }
     }
 
-    // @Test
-    //@ParameterizedTest
-    @ValueSource(strings = { "Java", "java", "JAVA" })
-    void test2(String s) {
-        System.out.println(s);
-        App classUnderTest = new App();
-        assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+    //@Test
+    @ParameterizedTest
+    @ValueSource(strings = { "\"/resource/${result1.id} aaa ${result1.id} ccc\"", "{\"id\":\"${result1.id}\"}", "{\"obj1\":${result1.obj1}}" })
+    void test2(String s) throws Exception {
+        if (!result.has("result1")) {
+            String resultJson = "{\"id\":\"abcd1234\",\"obj1\":{\"item1\":\"value1\",\"item2\":\"value2\"}}";
+            result.add("result1", JsonParser.parseString(resultJson));
+        }
+        JsonElement json = getJsonElement(s);
+        System.out.println(json);
+        //App classUnderTest = new App();
+        //assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+    }
+
+    private String replaceParameter(String input) {
+        StringBuffer sb = new StringBuffer();
+        DocumentContext context = JsonPath.using(conf).parse(result);
+        Matcher matcher = pattern.matcher(input);
+        while (matcher.find()) {
+            // get JsonElement by JsonPath
+            JsonElement el = context.read("$." + matcher.group(1));
+            String replacement = el.isJsonPrimitive() ? el.getAsString() : el.toString();
+            // replace string
+            matcher.appendReplacement(sb, replacement);
+        }
+        matcher.appendTail(sb);    
+        return sb.toString();
+    }
+
+    private JsonElement getJsonElement(String json) throws IOException {
+        if (StringUtils.isNotBlank(json)) {
+            if (json.endsWith(".json")) {
+                File jsonFile = new File(json);
+                if (!jsonFile.exists()) {
+                    throw new FileNotFoundException("File not found. fileName: " + json);
+                }
+                json = Files.readString(jsonFile.toPath());
+            }
+            // replace parameter & parse
+            return JsonParser.parseString(replaceParameter(json));
+        }
+        return null;
     }
 }

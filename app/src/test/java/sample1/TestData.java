@@ -1,8 +1,6 @@
 package sample1;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 
@@ -48,14 +46,15 @@ public class TestData {
         this.description = getStringValue(map.get("description"));
         this.method = getStringValue(map.get("method"));
         this.path = getStringValue(map.get("path"));
-        this.input = getJsonValue(map.get("input"));
+        this.input = getStringValue(map.get("input"));
         this.status = getIntValue(map.get("status"));
         Optional.ofNullable(map.get("count")).ifPresent(cell -> this.count = Optional.ofNullable((int)cell.getNumericCellValue()));
-        this.expected = getJsonValue(map.get("expected"));
+        this.expected = getStringValue(map.get("expected"));
         this.resultName = getStringValue(map.get("resultname"));
         this.skip = getBooleanValue(map.get("skip"));
     }
 
+    /** return test name. */
     public String toString() {
         return StringUtils.isNotBlank(this.description) ?
             this.description : this.method + " " + this.path;
@@ -63,17 +62,6 @@ public class TestData {
 
     private String getStringValue(Cell cell) {
         return cell != null ? cell.getStringCellValue() : null;
-    }
-
-    private String getJsonValue(Cell cell) throws IOException {
-        if (cell != null) {
-            String value = cell.getStringCellValue();
-            if (StringUtils.isNotBlank(value) && value.endsWith(".json")) {
-                return Files.readString(Path.of(value));
-            }
-            return value;
-        }
-        return null;
     }
 
     private int getIntValue(Cell cell) {
