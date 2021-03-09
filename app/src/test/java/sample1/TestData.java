@@ -36,7 +36,7 @@ public class TestData {
     private boolean skip;
 
     /**
-     * create instance
+     * Initialize instance.
      * 
      * @param map
      * @throws IOException
@@ -54,7 +54,7 @@ public class TestData {
         this.skip = getBooleanValue(map.get("skip"));
     }
 
-    /** return test name. */
+    /** Return test name. */
     public String toString() {
         return StringUtils.isNotBlank(this.description) ?
             this.description : this.method + " " + this.path;
