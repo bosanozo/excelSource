@@ -1,0 +1,7 @@
+{
+    "deviceToken": "abcd1234",
+    "endpointArn":"${result1.endpointArn}",
+    "corpId": "corp001",
+    "storeId": "store001",
+    "terminalId": "terminal001"
+}

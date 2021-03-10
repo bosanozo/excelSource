@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.google.gson.JsonParser;
 
+@TestInstance(LifeCycle.PER_CLASS)
 class AppTest {
     private static final String baseUrl = "https://u57nfat2zh.execute-api.ap-northeast-1.amazonaws.com/prod/v1/";
     private ApiTester apiTester = new ApiTester(baseUrl);
