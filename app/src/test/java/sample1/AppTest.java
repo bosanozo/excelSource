@@ -3,13 +3,15 @@
  */
 package sample1;
 
+import org.junit.jupiter.api.TestInstance;
 //import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import com.google.gson.JsonParser;
 
-@TestInstance(LifeCycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 class AppTest {
     private static final String baseUrl = "https://u57nfat2zh.execute-api.ap-northeast-1.amazonaws.com/prod/v1/";
     private ApiTester apiTester = new ApiTester(baseUrl);

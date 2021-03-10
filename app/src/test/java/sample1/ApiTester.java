@@ -62,6 +62,10 @@ public class ApiTester {
      * @throws Exception
      */
     public void TestApi(TestData testData) throws Exception {
+        if (testData.getNo() == 1) {
+            result = new JsonObject();
+        } 
+
         if (testData.isSkip()) {
             System.out.println("skip!");
             return;
@@ -98,8 +102,7 @@ public class ApiTester {
 
             JsonElement expected = getJsonElement(testData.getExpected());
             if (expected != null) {
-                System.out.println("expected: " + expected);
-                System.out.println(expected.equals(actual));
+                assertTrue(expected.equals(actual), "expected: " + expected + "\nactual: " + actual);
             }
         }
     }

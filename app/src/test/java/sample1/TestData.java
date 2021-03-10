@@ -48,7 +48,8 @@ public class TestData {
         this.path = getStringValue(map.get("path"));
         this.input = getStringValue(map.get("input"));
         this.status = getIntValue(map.get("status"));
-        Optional.ofNullable(map.get("count")).ifPresent(cell -> this.count = Optional.ofNullable((int)cell.getNumericCellValue()));
+        this.count = map.get("count") != null ?
+            Optional.of((int)map.get("count").getNumericCellValue()) : Optional.empty();
         this.expected = getStringValue(map.get("expected"));
         this.resultName = getStringValue(map.get("resultname"));
         this.skip = getBooleanValue(map.get("skip"));
