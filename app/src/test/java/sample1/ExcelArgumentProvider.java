@@ -57,7 +57,7 @@ class ExcelArgumentProvider implements ArgumentsProvider, AnnotationConsumer<Exc
                 // read test data
                 for (int i = 1; i < lastRowNum; i++) {
                     Row row = sheet.getRow(i);
-                    if (row == null) break;
+                    if (row == null || row.getCell(0) == null) break;
                     Map<String, Cell> map = new HashMap<String, Cell>();
                     for (int j = 0; j < lastCellNum; j++) {
                         Cell cell = row.getCell(j);

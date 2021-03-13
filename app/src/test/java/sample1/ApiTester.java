@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,7 +34,7 @@ import com.jayway.jsonpath.spi.json.GsonJsonProvider;
  */
 public class ApiTester {
     private String baseUrl;
-    private HttpRequestFactory reqFactory = new NetHttpTransport().createRequestFactory();
+    private HttpRequestFactory reqFactory;
     private JsonObject result = new JsonObject();
    
     private Pattern pattern = Pattern.compile("\\$[{]([^}]+)[}]");
@@ -43,7 +47,20 @@ public class ApiTester {
      */
     public ApiTester(String baseUrl) {
         this.baseUrl = baseUrl;
-    }
+
+        try {
+            NetHttpTransport.Builder builder = new NetHttpTransport.Builder().doNotValidateCertificate();
+            String env_proxy = System.getenv("HTTP_PROXY");
+            if (StringUtils.isNotBlank(env_proxy)) {
+                URL url = new URL(env_proxy);
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(url.getHost(), url.getPort()));
+                builder.setProxy(proxy); 
+            }
+            reqFactory = builder.build().createRequestFactory();
+        } catch (Exception ex) {
+            System.out.println("error: " + ex);
+        }
+     }
 
     /**
      * Add JsonElement to result.
@@ -83,7 +100,7 @@ public class ApiTester {
 
         // call api
         HttpResponse response = request.execute();
-        System.out.println("status: " + response.getStatusCode());
+        System.out.println("status: " + response.getStatusCode() + " ContentType: " + response.getContentType());
         assertEquals(testData.getStatus(), response.getStatusCode());
 
         // verify response
@@ -144,7 +161,7 @@ public class ApiTester {
                 if (!jsonFile.exists()) {
                     throw new FileNotFoundException("File not found. fileName: " + json);
                 }
-                json = Files.readString(jsonFile.toPath());
+                json = new String(Files.readAllBytes(jsonFile.toPath()), Charset.forName("UTF-8"));
             }
             // replace parameter & parse
             return JsonParser.parseString(replaceParameter(json));

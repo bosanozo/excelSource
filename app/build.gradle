@@ -9,7 +9,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
-    id "io.freefair.lombok" version "5.3.0"
+    //id "io.freefair.lombok" version "5.3.0"
 }
 
 repositories {
@@ -27,11 +27,15 @@ dependencies {
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:29.0-jre'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.1'
-    testImplementation 'org.apache.poi:poi-ooxml:4.1.2'
-    testImplementation 'com.google.http-client:google-http-client:1.27.0'
-    testImplementation 'com.google.code.gson:gson:2.8.6'
-    testImplementation 'com.jayway.jsonpath:json-path:2.5.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:latest.release'
+    testImplementation 'org.apache.poi:poi-ooxml:latest.release'
+    testImplementation 'com.google.http-client:google-http-client:latest.release'
+    testImplementation 'com.google.code.gson:gson:latest.release'
+    testImplementation 'com.jayway.jsonpath:json-path:latest.release'
+
+    // without plugin
+    testCompileOnly 'org.projectlombok:lombok:latest.release'
+    testAnnotationProcessor 'org.projectlombok:lombok:latest.release'
 }
 
 application {
