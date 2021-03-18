@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 @TestInstance(Lifecycle.PER_CLASS)
@@ -19,6 +20,11 @@ class AppTest {
     @ParameterizedTest
     @ExcelSource(file = "../testdata/test1.xlsx", sheet = "Sheet1")
     void test1(TestData testData) throws Exception {
+        if (testData.getNo() == 1) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("token", "abcd1234");
+            apiTester.setResult(jsonObject);
+        }
         apiTester.TestApi(testData);
     }
 
@@ -26,8 +32,8 @@ class AppTest {
     @ParameterizedTest
     @ValueSource(strings = { "/resource/${result1.id} aaa ${result1.id} bbb ${result1.obj1} ccc", "{\"id\":\"${result1.id}\"}", "{\"obj1\":${result1.obj1}}" })
     void test2(String s) throws Exception {
-        String resultJson = "{\"id\":\"abcd1234\",\"obj1\":{\"item1\":\"value1\",\"item2\":\"value2\"}}";
-        apiTester.addResult("result1", JsonParser.parseString(resultJson));
+        String resultJson = "{\"result1\":{\"id\":\"abcd1234\",\"obj1\":{\"item1\":\"value1\",\"item2\":\"value2\"}}}";
+        apiTester.setResult(JsonParser.parseString(resultJson).getAsJsonObject());
         String json = apiTester.replaceParameter(s);
         System.out.println(json);
         //App classUnderTest = new App();

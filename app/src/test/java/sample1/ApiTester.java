@@ -37,7 +37,7 @@ import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 public class ApiTester {
     private String baseUrl;
     private HttpRequestFactory reqFactory;
-    private JsonObject result = new JsonObject();
+    private JsonObject result;
    
     private Pattern pattern = Pattern.compile("\\$[{]([^}]+)[}]");
     private Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider()).build();               
@@ -65,13 +65,12 @@ public class ApiTester {
      }
 
     /**
-     * Add JsonElement to result.
+     * Set JsonObject to result.
      * 
-     * @param resultName result name
-     * @param element JsonElement
+     * @param jsonObject JsonObject
      */
-    public void addResult(String resultName, JsonElement element) {
-        this.result.add(resultName, element);
+    public void setResult(JsonObject jsonObject) {
+        this.result = jsonObject;
     }
 
     /**
@@ -81,7 +80,7 @@ public class ApiTester {
      * @throws Exception
      */
     public void TestApi(TestData testData) throws Exception {
-        if (testData.getNo() == 1) {
+        if (result == null) {
             result = new JsonObject();
         } 
 
@@ -179,7 +178,7 @@ public class ApiTester {
      * @return JsonElement
      * @throws IOException
      */
-    public JsonElement getJsonElement(String json) throws IOException {
+    private JsonElement getJsonElement(String json) throws IOException {
         if (StringUtils.isNotBlank(json)) {
             if (json.endsWith(".json")) {
                 File jsonFile = new File(json);
