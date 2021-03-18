@@ -45,7 +45,7 @@ class ExcelArgumentProvider implements ArgumentsProvider, AnnotationConsumer<Exc
             Sheet sheet = workbook.getSheet(this.sheetName);
             int lastRowNum = sheet.getLastRowNum();
 
-            if (lastRowNum > 1) {
+            if (lastRowNum > 0) {
                 // read header
                 Row headerRow = sheet.getRow(0);
                 int lastCellNum = headerRow.getLastCellNum();
@@ -55,7 +55,7 @@ class ExcelArgumentProvider implements ArgumentsProvider, AnnotationConsumer<Exc
                 }
                 
                 // read test data
-                for (int i = 1; i < lastRowNum; i++) {
+                for (int i = 1; i <= lastRowNum; i++) {
                     Row row = sheet.getRow(i);
                     if (row == null || row.getCell(0) == null) break;
                     Map<String, Cell> map = new HashMap<String, Cell>();

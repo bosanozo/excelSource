@@ -22,6 +22,8 @@ public class TestData {
     private String method;
     /** api path */
     private String path;
+    /** request headers */
+    private String headers;
     /** input json */
     private String input;
     /** expected http status code */
@@ -46,6 +48,7 @@ public class TestData {
         this.description = getStringValue(map.get("description"));
         this.method = getStringValue(map.get("method"));
         this.path = getStringValue(map.get("path"));
+        this.headers = getStringValue(map.get("headers"));
         this.input = getStringValue(map.get("input"));
         this.status = getIntValue(map.get("status"));
         this.count = map.get("count") != null ?

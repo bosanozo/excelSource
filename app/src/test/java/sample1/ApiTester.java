@@ -12,11 +12,13 @@ import java.net.URL;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
@@ -51,7 +53,7 @@ public class ApiTester {
         try {
             NetHttpTransport.Builder builder = new NetHttpTransport.Builder().doNotValidateCertificate();
             String env_proxy = System.getenv("HTTP_PROXY");
-            if (StringUtils.isNotBlank(env_proxy)) {
+            if (StringUtils.isNotBlank(env_proxy) && !"localost".equals(new URL(baseUrl).getHost())) {
                 URL url = new URL(env_proxy);
                 Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(url.getHost(), url.getPort()));
                 builder.setProxy(proxy); 
@@ -91,6 +93,7 @@ public class ApiTester {
         // create request
         GenericUrl url = new GenericUrl(baseUrl + replaceParameter(testData.getPath()));
         HttpRequest request = reqFactory.buildRequest(testData.getMethod().toUpperCase(), url, null);
+        setHeaders(request, testData.getHeaders());
         request.setThrowExceptionOnExecuteError(false);
         JsonElement input = getJsonElement(testData.getInput());
         if (input != null) {
@@ -122,6 +125,28 @@ public class ApiTester {
                 assertTrue(expected.equals(actual), "expected: " + expected + "\nactual: " + actual);
             }
         }
+    }
+
+    /**
+     * Set HttpHeaders to HttpRequest.
+     * 
+     * @param request HttpRequest
+     * @param headers headers string
+     */
+    private void setHeaders(HttpRequest request, String headers)
+    {
+        if (StringUtils.isBlank(headers)) return;
+
+        headers = replaceParameter(headers);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        Arrays.stream(headers.split("\n")).forEach(h -> {
+            String[] kv = h.split("=");
+            if (kv.length == 2) {
+                httpHeaders.set(kv[0], kv[1]);
+            }
+        });
+
+        request.setHeaders(httpHeaders);
     }
 
     /**
