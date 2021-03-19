@@ -103,12 +103,15 @@ public class ApiTester {
         // call api
         HttpResponse response = request.execute();
         System.out.println("status: " + response.getStatusCode() + " ContentType: " + response.getContentType());
-        assertEquals(testData.getStatus(), response.getStatusCode());
+        JsonElement actual = null;
+        if ("application/json".equals(response.getContentType())) {
+            actual = JsonParser.parseString(response.parseAsString());
+            System.out.println("actual: " + actual);
+        }
 
         // verify response
-        if ("application/json".equals(response.getContentType())) {
-            JsonElement actual = JsonParser.parseString(response.parseAsString());
-            System.out.println("actual: " + actual);
+        assertEquals(testData.getStatus(), response.getStatusCode());
+        if (actual != null) {
             if (testData.getCount().isPresent()) {
                 int count = actual.isJsonArray() ? actual.getAsJsonArray().size() :
                 actual.isJsonNull() ? 0 : 1;
